@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/ui/button";
-import { Shield, Home, Upload, AlertTriangle, Users, LogOut, Bell } from "lucide-react";
+import { Shield, Home, Upload, AlertTriangle, Users, LogOut, Bell, Lightbulb, Scan } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -99,6 +99,24 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       {unreadAlerts}
                     </span>
                   )}
+                </NavLink>
+
+                <NavLink
+                  to="/solutions"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                  activeClassName="text-foreground bg-muted"
+                >
+                  <Lightbulb className="w-4 h-4 inline-block mr-2" />
+                  Solutions
+                </NavLink>
+
+                <NavLink
+                  to="/auto-scan"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                  activeClassName="text-foreground bg-muted"
+                >
+                  <Scan className="w-4 h-4 inline-block mr-2" />
+                  Auto-Scan
                 </NavLink>
 
                 {isAdmin && (
