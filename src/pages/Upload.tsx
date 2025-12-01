@@ -33,6 +33,12 @@ export default function Upload() {
       return;
     }
 
+    const MAX_CONTENT_LENGTH = 100000; // 100k characters
+    if (logContent.length > MAX_CONTENT_LENGTH) {
+      toast.error(`Log content exceeds maximum size limit of ${MAX_CONTENT_LENGTH.toLocaleString()} characters`);
+      return;
+    }
+
     setIsUploading(true);
 
     try {

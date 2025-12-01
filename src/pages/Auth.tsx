@@ -175,7 +175,9 @@ export default function Auth() {
         </CardContent>
 
         <CardFooter className="flex flex-col gap-2 text-xs text-muted-foreground text-center">
-          <p>Demo credentials: admin@threatguard.ai / admin123</p>
+          {import.meta.env.DEV && (
+            <p>Demo credentials: admin@threatguard.ai / admin123</p>
+          )}
           <p className="text-primary">Powered by AI-driven threat detection</p>
         </CardFooter>
       </Card>
