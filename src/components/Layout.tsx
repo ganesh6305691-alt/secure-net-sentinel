@@ -79,6 +79,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </NavLink>
 
                 <NavLink
+                  to="/auto-scan"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                  activeClassName="text-foreground bg-muted"
+                >
+                  <Scan className="w-4 h-4 inline-block mr-2" />
+                  Auto-Scan
+                </NavLink>
+
+                <NavLink
                   to="/threats"
                   className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
                   activeClassName="text-foreground bg-muted"
@@ -108,15 +117,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 >
                   <Lightbulb className="w-4 h-4 inline-block mr-2" />
                   Solutions
-                </NavLink>
-
-                <NavLink
-                  to="/auto-scan"
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                  activeClassName="text-foreground bg-muted"
-                >
-                  <Scan className="w-4 h-4 inline-block mr-2" />
-                  Auto-Scan
                 </NavLink>
 
                 {isAdmin && (
