@@ -111,7 +111,14 @@ Return empty array [] if no security threats detected.`,
     }
 
     const aiData = await aiResponse.json();
-    const threats = JSON.parse(aiData.choices[0].message.content || "[]");
+    
+    // Strip markdown code fences if present (AI sometimes wraps JSON in ```json ... ```)
+    let content = aiData.choices[0].message.content || "[]";
+    if (content.trim().startsWith('```')) {
+      content = content.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+    }
+    
+    const threats = JSON.parse(content);
 
     console.log(`AI detected ${threats.length} threats for log ${logId}`);
 
