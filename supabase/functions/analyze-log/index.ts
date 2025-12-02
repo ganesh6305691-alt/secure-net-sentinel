@@ -74,32 +74,87 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are a cybersecurity AI analyzing Windows Event Logs and network security logs. Focus on detecting real security threats and system issues.
+            content: `You are an advanced cybersecurity AI specializing in Windows Event Log analysis and network security threat detection. Your mission is to identify ALL security threats, anomalies, and potential risks.
 
 **Windows Event Log Format:**
 Columns: Level, Date and Time, Source, Event ID, Task Category, Description
 
-**Common Security Threats to Detect:**
-1. **Service Failures (Error level)**: Service crashes, especially security services (Event IDs: 7034, 7031, 7000)
-2. **Permission Issues (Warning level)**: DCOM permission errors, unauthorized access attempts (Event ID: 10016)
-3. **Failed Login Attempts**: Multiple failed authentication attempts (Event ID: 4625)
-4. **Unusual Network Activity**: Excessive connection attempts, port scanning
-5. **System Crashes**: Blue screens, kernel errors (Event IDs: 41, 1001)
-6. **Privilege Escalation**: Attempts to gain admin rights (Event ID: 4672)
-7. **Malware Indicators**: Suspicious process creation, registry modifications
+**COMPREHENSIVE THREAT CATEGORIES - Detect ALL of these:**
 
-**Analysis Instructions:**
-- IGNORE routine informational events like "Roam Complete" (Event 7003, 7021) unless excessive
-- FOCUS on Error and Warning level events
-- Identify patterns: repeated failures, permission issues, service crashes
-- For each threat, provide specific Event ID, timestamp, and affected component
+1. **SERVICE FAILURES (type: service_failure)**
+   - Service crashes, unexpected terminations (Event IDs: 7034, 7031, 7000, 7001)
+   - Security service failures (Windows Defender, Firewall, etc.)
+   - Severity: Critical if security service, High otherwise
 
-Return JSON array:
-[{"type":"service_failure|permission_denied|failed_auth|malware|suspicious_activity|system_crash|network_anomaly","severity":"critical|high|medium|low|info","description":"Specific description with Event ID and component","source":"Event source name","event_id":"Event ID number","timestamp":"Date and time","recommendation":"Specific fix or action","confidence":85}]
+2. **PERMISSION VIOLATIONS (type: permission_denied)**
+   - DCOM permission errors (Event ID: 10016)
+   - Unauthorized access attempts
+   - Access denied events
+   - Severity: Medium to High
 
-Return empty array [] if no security threats detected.`,
+3. **AUTHENTICATION ANOMALIES (type: failed_auth)**
+   - Failed login attempts (Event ID: 4625)
+   - Multiple authentication failures from same source
+   - Account lockouts (Event ID: 4740)
+   - Severity: High if repeated, Medium otherwise
+
+4. **SYSTEM CRASHES & INSTABILITY (type: system_crash)**
+   - Blue screens, kernel errors (Event IDs: 41, 1001, 6008)
+   - Unexpected shutdowns
+   - Critical system errors
+   - Severity: Critical
+
+5. **MALWARE INDICATORS (type: malware)**
+   - Suspicious process creation
+   - Registry modifications in sensitive areas
+   - Antivirus detections
+   - Unknown service installations
+   - Severity: Critical
+
+6. **NETWORK ANOMALIES (type: network_anomaly)**
+   - Excessive connection attempts
+   - Port scanning behavior
+   - Unusual network traffic patterns
+   - Connection to suspicious IPs
+   - Severity: High
+
+7. **ANOMALOUS BEHAVIOR (type: anomaly)**
+   - ANY unusual patterns or deviations from normal
+   - Repeated errors or warnings
+   - Timing anomalies (events clustered in short time)
+   - Resource exhaustion indicators
+   - Severity: Medium to High
+
+8. **SUSPICIOUS ACTIVITY (type: suspicious)**
+   - Any behavior that doesn't fit other categories but seems concerning
+   - Unusual user activity
+   - Privilege escalation attempts (Event ID: 4672)
+   - Severity: Medium to High
+
+**ANALYSIS RULES:**
+✓ BE AGGRESSIVE: Better to flag potential issues than miss real threats
+✓ DETECT PATTERNS: Look for repeated events, timing clusters, related events
+✓ EVERY ERROR: All "Error" level events are potential threats
+✓ WARNING CONTEXT: "Warning" events can indicate security issues
+✓ IGNORE ONLY: Routine "Information" events with Event IDs 7003, 7021 (unless excessive)
+✓ ANOMALY DETECTION: Flag anything unusual even if not clearly malicious
+
+**OUTPUT FORMAT:**
+Return JSON array with ALL detected threats:
+[{
+  "type": "service_failure|permission_denied|failed_auth|malware|suspicious|anomaly|system_crash|network_anomaly",
+  "severity": "critical|high|medium|low",
+  "description": "Detailed description including Event ID, Source, and specific issue",
+  "source": "Event source name",
+  "event_id": "Event ID number",
+  "timestamp": "Date and time",
+  "recommendation": "Specific remediation steps",
+  "confidence": 70-100
+}]
+
+Return empty array [] ONLY if absolutely no threats detected.`,
           },
-          { role: "user", content: `Analyze this Windows Event Log for security threats and system issues:\n\n${sanitizedContent}` },
+          { role: "user", content: `Analyze this Windows Event Log comprehensively. Detect ALL threats, anomalies, errors, and suspicious patterns:\n\n${sanitizedContent}` },
         ],
       }),
     });
@@ -122,30 +177,62 @@ Return empty array [] if no security threats detected.`,
 
     console.log(`AI detected ${threats.length} threats for log ${logId}`);
 
+    // Map AI threat types to database enum values
+    const threatTypeMapping: Record<string, string> = {
+      'service_failure': 'intrusion',
+      'permission_denied': 'suspicious',
+      'failed_auth': 'brute_force',
+      'malware': 'malware',
+      'network_anomaly': 'anomaly',
+      'system_crash': 'intrusion',
+      'anomaly': 'anomaly',
+      'suspicious': 'suspicious',
+      'suspicious_activity': 'suspicious',
+      'intrusion': 'intrusion',
+      'dos': 'dos',
+      'brute_force': 'brute_force'
+    };
+
     for (const threat of threats) {
+      // Map threat type or default to 'suspicious'
+      const dbThreatType = threatTypeMapping[threat.type?.toLowerCase()] || 'suspicious';
+      
       const { data: threatData } = await supabase
         .from("threats")
         .insert({
           log_id: logId,
-          threat_type: threat.type || "suspicious",
+          threat_type: dbThreatType,
           severity: threat.severity || "medium",
           description: threat.description || "Threat detected",
           source_ip: threat.source || null,
           destination_ip: threat.event_id || null,
           port: threat.event_id ? parseInt(threat.event_id) : null,
           confidence_score: threat.confidence || 75,
+          raw_data: threat
         })
         .select()
         .single();
 
+      // Create alert for EVERY detected threat
       if (threatData) {
+        const alertTitle = `${(threat.severity || 'medium').toUpperCase()} THREAT: ${threat.type || 'Security Issue'}`;
+        const alertMessage = `${threat.description || 'Threat detected'}
+
+Source: ${threat.source || 'Unknown'}
+Event ID: ${threat.event_id || 'N/A'}
+Time: ${threat.timestamp || 'Unknown'}
+
+Recommendation: ${threat.recommendation || 'Review system logs and investigate immediately'}`;
+
         await supabase.from("alerts").insert({
           user_id: log.user_id,
           threat_id: threatData.id,
-          title: `${threat.severity?.toUpperCase() || 'MEDIUM'}: ${threat.type || 'Security Issue'}`,
-          message: `${threat.description || 'Threat detected'}\n\nRecommendation: ${threat.recommendation || 'Review system logs and investigate'}`,
+          title: alertTitle,
+          message: alertMessage,
           severity: threat.severity || "medium",
         });
+        
+        console.log(`Created alert for threat ${threatData.id}: ${alertTitle}`);
       }
     }
 
