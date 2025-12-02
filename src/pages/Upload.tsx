@@ -19,6 +19,7 @@ export default function Upload() {
   const [totalLogs, setTotalLogs] = useState(0);
   const [processedLogs, setProcessedLogs] = useState(0);
   const [threatsFound, setThreatsFound] = useState(0);
+  const [previewEntries, setPreviewEntries] = useState(0);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -28,7 +29,22 @@ export default function Upload() {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      setLogContent(event.target?.result as string);
+      const content = event.target?.result as string;
+      setLogContent(content);
+      
+      // Show preview of how many entries were detected
+      const entries = parseWindowsEventLog(content);
+      setPreviewEntries(entries.length);
+      
+      if (entries.length > 0) {
+        toast.success(`File loaded successfully!`, {
+          description: `Detected ${entries.length} log entries ready for analysis`
+        });
+      } else {
+        toast.warning("No log entries detected in this file", {
+          description: "Please check the file format matches Windows Event Log format"
+        });
+      }
     };
     reader.readAsText(file);
   };
@@ -55,12 +71,17 @@ export default function Upload() {
       const entries = parseWindowsEventLog(logContent);
       
       if (entries.length === 0) {
-        toast.error("No valid log entries found in the file");
+        setIsUploading(false);
+        toast.error("No valid log entries found. Please check your log format and try again.", {
+          description: "Expected format: Tab-separated Windows Event Logs with columns: Level, Date and Time, Source, Event ID, Task Category"
+        });
         return;
       }
 
       setTotalLogs(entries.length);
-      toast.info(`Found ${entries.length} log entries. Starting analysis...`);
+      toast.success(`✓ Successfully parsed ${entries.length} log entries!`, {
+        description: "Starting AI threat analysis..."
+      });
 
       let totalThreats = 0;
 
@@ -182,9 +203,19 @@ export default function Upload() {
                 className="hidden"
               />
               {fileName && (
-                <span className="text-sm text-muted-foreground">
-                  Selected: {fileName}
-                </span>
+                <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg">
+                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {fileName}
+                    </p>
+                    {previewEntries > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        {previewEntries} log entries detected
+                      </p>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
 
@@ -197,15 +228,22 @@ export default function Upload() {
               disabled={isUploading}
             />
 
-            <div className="flex items-start gap-2 text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg">
-              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-medium">Windows Event Log Format:</p>
-                <pre className="mt-1 text-xs overflow-x-auto">
-                  {`Level\tDate and Time\tSource\tEvent ID\tTask Category
-Information\t2024-01-15 10:30:45\tSystem\t7036\tNone
-Warning\t2024-01-15 10:30:46\tDistributedCOM\t10016\tNone`}
-                </pre>
+            <div className="space-y-3">
+              <div className="flex items-start gap-2 text-sm bg-primary/10 border border-primary/20 p-3 rounded-lg">
+                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-primary" />
+                <div className="flex-1">
+                  <p className="font-medium text-foreground mb-1">Supported Format: Windows Event Logs</p>
+                  <p className="text-xs text-muted-foreground mb-2">Tab-separated format with the following columns:</p>
+                  <pre className="text-xs bg-background/50 p-2 rounded border border-border overflow-x-auto">
+                    {`Level\tDate and Time\tSource\tEvent ID\tTask Category
+Information\t26-11-2025 10:13:28\tNetwtw14\t7003\tNone
+Warning\t26-11-2025 10:07:15\tDistributedCOM\t10016\tNone
+Error\t26-11-2025 10:09:15\tService Control Manager\t7034\tNone`}
+                  </pre>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    ✓ Exported from Windows Event Viewer (Save All Events As... → Text format)
+                  </p>
+                </div>
               </div>
             </div>
 
