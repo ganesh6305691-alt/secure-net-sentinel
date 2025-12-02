@@ -193,30 +193,40 @@ Return empty array [] ONLY if absolutely no threats detected.`,
       'brute_force': 'brute_force'
     };
 
-    for (const threat of threats) {
-      // Map threat type or default to 'suspicious'
-      const dbThreatType = threatTypeMapping[threat.type?.toLowerCase()] || 'suspicious';
+    // Only process if there are actual threats detected
+    if (threats.length > 0) {
+      console.log(`Processing ${threats.length} threats for log ${logId}`);
       
-      const { data: threatData } = await supabase
-        .from("threats")
-        .insert({
-          log_id: logId,
-          threat_type: dbThreatType,
-          severity: threat.severity || "medium",
-          description: threat.description || "Threat detected",
-          source_ip: threat.source || null,
-          destination_ip: threat.event_id || null,
-          port: threat.event_id ? parseInt(threat.event_id) : null,
-          confidence_score: threat.confidence || 75,
-          raw_data: threat
-        })
-        .select()
-        .single();
+      for (const threat of threats) {
+        // Skip if this is marked as clean/safe
+        if (threat.severity === 'info' && threat.description?.toLowerCase().includes('clean')) {
+          console.log('Skipping clean log entry - no threat detected');
+          continue;
+        }
+        
+        // Map threat type or default to 'suspicious'
+        const dbThreatType = threatTypeMapping[threat.type?.toLowerCase()] || 'suspicious';
+        
+        const { data: threatData } = await supabase
+          .from("threats")
+          .insert({
+            log_id: logId,
+            threat_type: dbThreatType,
+            severity: threat.severity || "medium",
+            description: threat.description || "Threat detected",
+            source_ip: threat.source || null,
+            destination_ip: threat.event_id || null,
+            port: threat.event_id ? parseInt(threat.event_id) : null,
+            confidence_score: threat.confidence || 75,
+            raw_data: threat
+          })
+          .select()
+          .single();
 
-      // Create alert for EVERY detected threat
-      if (threatData) {
-        const alertTitle = `${(threat.severity || 'medium').toUpperCase()} THREAT: ${threat.type || 'Security Issue'}`;
-        const alertMessage = `${threat.description || 'Threat detected'}
+        // Create alert ONLY for actual threats (not clean logs)
+        if (threatData) {
+          const alertTitle = `${(threat.severity || 'medium').toUpperCase()} THREAT: ${threat.type || 'Security Issue'}`;
+          const alertMessage = `${threat.description || 'Threat detected'}
 
 Source: ${threat.source || 'Unknown'}
 Event ID: ${threat.event_id || 'N/A'}
@@ -224,16 +234,19 @@ Time: ${threat.timestamp || 'Unknown'}
 
 Recommendation: ${threat.recommendation || 'Review system logs and investigate immediately'}`;
 
-        await supabase.from("alerts").insert({
-          user_id: log.user_id,
-          threat_id: threatData.id,
-          title: alertTitle,
-          message: alertMessage,
-          severity: threat.severity || "medium",
-        });
-        
-        console.log(`Created alert for threat ${threatData.id}: ${alertTitle}`);
+          await supabase.from("alerts").insert({
+            user_id: log.user_id,
+            threat_id: threatData.id,
+            title: alertTitle,
+            message: alertMessage,
+            severity: threat.severity || "medium",
+          });
+          
+          console.log(`Created alert for threat ${threatData.id}: ${alertTitle}`);
+        }
       }
+    } else {
+      console.log(`No threats detected for log ${logId} - log is clean`);
     }
 
     await supabase.from("logs").update({ 
