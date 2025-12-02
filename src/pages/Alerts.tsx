@@ -22,14 +22,6 @@ export default function Alerts() {
   const { user } = useAuth();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState({
-    total: 0,
-    unread: 0,
-    critical: 0,
-    high: 0,
-    medium: 0,
-    low: 0
-  });
 
   useEffect(() => {
     if (!user) return;
@@ -67,17 +59,6 @@ export default function Alerts() {
       if (error) throw error;
 
       setAlerts(data);
-      
-      // Calculate stats
-      const newStats = {
-        total: data.length,
-        unread: data.filter(a => !a.is_read).length,
-        critical: data.filter(a => a.severity === 'critical').length,
-        high: data.filter(a => a.severity === 'high').length,
-        medium: data.filter(a => a.severity === 'medium').length,
-        low: data.filter(a => a.severity === 'low').length
-      };
-      setStats(newStats);
     } catch (error) {
       console.error("Error fetching alerts:", error);
     } finally {
@@ -121,51 +102,9 @@ export default function Alerts() {
             Security Alerts
           </h1>
           <p className="text-muted-foreground">
-            Real-time notifications for ALL detected threats and anomalies
+            Real-time notifications for detected threats
           </p>
         </div>
-
-        {/* Alert Statistics */}
-        {!isLoading && alerts.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-              <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-primary">{stats.total}</div>
-                <div className="text-xs text-muted-foreground">Total Alerts</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-card to-card/50 border-border/50">
-              <CardContent className="pt-6">
-                <div className="text-2xl font-bold">{stats.unread}</div>
-                <div className="text-xs text-muted-foreground">Unread</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-threat-critical/10 to-threat-critical/5 border-threat-critical/20">
-              <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-threat-critical">{stats.critical}</div>
-                <div className="text-xs text-muted-foreground">Critical</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-threat-high/10 to-threat-high/5 border-threat-high/20">
-              <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-threat-high">{stats.high}</div>
-                <div className="text-xs text-muted-foreground">High</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-threat-medium/10 to-threat-medium/5 border-threat-medium/20">
-              <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-threat-medium">{stats.medium}</div>
-                <div className="text-xs text-muted-foreground">Medium</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-threat-low/10 to-threat-low/5 border-threat-low/20">
-              <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-threat-low">{stats.low}</div>
-                <div className="text-xs text-muted-foreground">Low</div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
 
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">Loading alerts...</div>
