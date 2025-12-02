@@ -63,6 +63,48 @@ export default function Solutions() {
 
   const getSolutionForThreat = (threatType: string) => {
     const solutions: Record<string, any> = {
+      intrusion: {
+        title: "System Intrusion / Service Failure Detected",
+        steps: [
+          "Open Services (services.msc) as Administrator",
+          "Locate the failed service and check its status",
+          "Review Event Viewer for detailed error messages",
+          "Try restarting the service manually",
+          "Check service dependencies and ensure they're running",
+          "Verify service account permissions",
+          "If persistent, reinstall or repair the application"
+        ],
+        prevention: "Enable service recovery options to automatically restart failed services",
+        links: ["https://docs.microsoft.com/en-us/windows/win32/services/services"]
+      },
+      suspicious: {
+        title: "Suspicious Activity Detected",
+        steps: [
+          "Review the specific event details in Event Viewer",
+          "Check for unauthorized access attempts",
+          "Verify all user accounts are legitimate",
+          "Scan system with Windows Defender",
+          "Review recent system changes and installations",
+          "Check Task Manager for unknown processes",
+          "Monitor system behavior for additional anomalies"
+        ],
+        prevention: "Enable audit logging, use strong passwords, keep software updated",
+        links: ["https://docs.microsoft.com/en-us/windows/security/"]
+      },
+      anomaly: {
+        title: "System Anomaly Detected",
+        steps: [
+          "Identify the pattern causing the anomaly",
+          "Check system resource usage (CPU, Memory, Disk)",
+          "Review Event Viewer for related events",
+          "Scan for malware and rootkits",
+          "Update all drivers and system software",
+          "Monitor the issue over time to establish baseline",
+          "If persistent, consider system restore or clean install"
+        ],
+        prevention: "Regular system monitoring, baseline establishment, automated alerts",
+        links: ["https://docs.microsoft.com/en-us/windows/security/threat-protection/"]
+      },
       service_failure: {
         title: "Service Failure Detected",
         steps: [
@@ -91,8 +133,8 @@ export default function Solutions() {
         prevention: "Regularly review DCOM permissions during software installations",
         links: ["https://docs.microsoft.com/en-us/windows/win32/com/dcom-security-enhancements"]
       },
-      failed_auth: {
-        title: "Failed Authentication Attempts",
+      brute_force: {
+        title: "Brute Force / Failed Authentication Attempts",
         steps: [
           "Review Event ID 4625 in Security Event Log",
           "Identify the source IP and username",
@@ -118,6 +160,20 @@ export default function Solutions() {
         ],
         prevention: "Keep Windows Defender updated, avoid suspicious downloads",
         links: ["https://support.microsoft.com/en-us/windows/stay-protected-with-windows-security"]
+      },
+      dos: {
+        title: "Denial of Service / Resource Exhaustion",
+        steps: [
+          "Identify the source of excessive requests",
+          "Block offending IPs in Windows Firewall",
+          "Check for misconfigured applications causing loops",
+          "Monitor network bandwidth usage",
+          "Use Resource Monitor to identify resource-intensive processes",
+          "Enable connection limiting in services",
+          "Consider using rate limiting or DDoS protection"
+        ],
+        prevention: "Implement rate limiting, use firewalls, monitor traffic patterns",
+        links: ["https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-firewall/"]
       },
       network_anomaly: {
         title: "Network Anomaly Detected",
