@@ -57,7 +57,7 @@ export default function AutoScan() {
 
       let totalThreats = 0;
 
-      // Process each log entry
+      // Process each log entry with delay to avoid rate limiting
       for (let i = 0; i < entries.length; i++) {
         const entry = entries[i];
         const entryContent = formatLogEntry(entry);
@@ -80,22 +80,54 @@ export default function AutoScan() {
           continue;
         }
 
-        // Analyze the log
-        try {
-          const { data, error: functionError } = await supabase.functions.invoke("analyze-log", {
-            body: { logId: logRecord.id },
-          });
+        // Analyze the log with retry logic
+        let retries = 0;
+        const maxRetries = 3;
+        
+        while (retries < maxRetries) {
+          try {
+            const { data, error: functionError } = await supabase.functions.invoke("analyze-log", {
+              body: { logId: logRecord.id },
+            });
 
-          if (!functionError && data?.threatsFound) {
-            totalThreats += data.threatsFound;
-            setThreatsFound(totalThreats);
+            if (functionError) {
+              throw functionError;
+            }
+
+            if (data?.isRateLimited) {
+              retries++;
+              if (retries < maxRetries) {
+                toast.warning(`Rate limited. Waiting before retry ${retries}/${maxRetries}...`);
+                await new Promise(resolve => setTimeout(resolve, (data.retryAfter || 5) * 1000));
+                continue;
+              }
+            }
+
+            if (data?.threatsFound) {
+              totalThreats += data.threatsFound;
+              setThreatsFound(totalThreats);
+            }
+            break;
+          } catch (error: any) {
+            console.error(`Error analyzing log entry ${i + 1}:`, error);
+            if (error?.message?.includes("429") || error?.status === 429) {
+              retries++;
+              if (retries < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                continue;
+              }
+            }
+            break;
           }
-        } catch (error) {
-          console.error(`Error analyzing log entry ${i + 1}:`, error);
         }
 
         setScannedCount(i + 1);
         setProgress(((i + 1) / entries.length) * 100);
+        
+        // Add delay between requests to prevent rate limiting
+        if (i < entries.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
       }
 
       if (totalThreats > 0) {
