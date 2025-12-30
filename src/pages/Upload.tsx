@@ -157,9 +157,9 @@ export default function Upload() {
         setProcessedLogs(i + 1);
         setProgress(((i + 1) / entries.length) * 100);
         
-        // Add delay between requests to prevent rate limiting
+        // Add delay between requests to prevent rate limiting (5 seconds)
         if (i < entries.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          await new Promise(resolve => setTimeout(resolve, 5000));
         }
       }
 
