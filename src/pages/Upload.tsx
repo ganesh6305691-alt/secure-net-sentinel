@@ -110,9 +110,10 @@ export default function Upload() {
 
         // Analyze the log entry with retry logic
         let retries = 0;
-        const maxRetries = 3;
+        const maxRetries = 5;
+        let success = false;
         
-        while (retries < maxRetries) {
+        while (retries < maxRetries && !success) {
           try {
             const { data, error: functionError } = await supabase.functions.invoke("analyze-log", {
               body: { logId: logData.id },
@@ -124,24 +125,28 @@ export default function Upload() {
 
             if (data?.isRateLimited) {
               retries++;
+              const waitTime = (data.retryAfter || 5) * 1000 + (retries * 2000);
               if (retries < maxRetries) {
-                toast.warning(`Rate limited. Waiting before retry ${retries}/${maxRetries}...`);
-                await new Promise(resolve => setTimeout(resolve, (data.retryAfter || 5) * 1000));
+                console.log(`Rate limited. Waiting ${waitTime/1000}s before retry ${retries}/${maxRetries}...`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
                 continue;
               }
+            } else {
+              success = true;
+              if (data?.threatsFound) {
+                totalThreats += data.threatsFound;
+                setThreatsFound(totalThreats);
+              }
             }
-
-            if (data?.threatsFound) {
-              totalThreats += data.threatsFound;
-              setThreatsFound(totalThreats);
-            }
-            break;
           } catch (error: any) {
             console.error(`Error analyzing log entry ${i + 1}:`, error);
-            if (error?.message?.includes("429") || error?.status === 429) {
+            const isRateLimited = error?.message?.includes("429") || error?.status === 429;
+            if (isRateLimited) {
               retries++;
               if (retries < maxRetries) {
-                await new Promise(resolve => setTimeout(resolve, 5000));
+                const waitTime = 5000 + (retries * 2000);
+                console.log(`Rate limit error. Waiting ${waitTime/1000}s...`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
                 continue;
               }
             }
@@ -152,9 +157,9 @@ export default function Upload() {
         setProcessedLogs(i + 1);
         setProgress(((i + 1) / entries.length) * 100);
         
-        // Add small delay between requests to prevent rate limiting (reduced for speed)
+        // Add delay between requests to prevent rate limiting
         if (i < entries.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 3000));
         }
       }
 
