@@ -129,9 +129,9 @@ export default function AutoScan() {
         setScannedCount(i + 1);
         setProgress(((i + 1) / entries.length) * 100);
         
-        // Add delay between requests to prevent rate limiting
+        // Add delay between requests to prevent rate limiting (5 seconds)
         if (i < entries.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          await new Promise(resolve => setTimeout(resolve, 5000));
         }
       }
 
@@ -153,56 +153,30 @@ export default function AutoScan() {
     const timestamp = new Date().toISOString().replace('T', ' ').split('.')[0];
     const header = `Level\tDate and Time\tSource\tEvent ID\tTask Category`;
     
+    // Reduced log sets to prevent rate limiting
     const allLogs = {
       security: [
-        `Information\t${timestamp}\tMicrosoft-Windows-Security-Auditing\t4624\tNone\tAn account was successfully logged on.`,
         `Warning\t${timestamp}\tMicrosoft-Windows-Security-Auditing\t4625\tNone\tAn account failed to log on.`,
-        `Information\t${timestamp}\tMicrosoft-Windows-Security-Auditing\t4672\tNone\tSpecial privileges assigned to new logon.`,
-        `Warning\t${timestamp}\tMicrosoft-Windows-Security-Auditing\t4648\tNone\tA logon was attempted using explicit credentials.`,
-        `Error\t${timestamp}\tMicrosoft-Windows-Security-Auditing\t4776\tNone\tThe computer attempted to validate credentials.`,
-        `Information\t${timestamp}\tMicrosoft-Windows-Security-Auditing\t4634\tNone\tAn account was logged off.`,
-        `Warning\t${timestamp}\tMicrosoft-Windows-Security-Auditing\t4771\tNone\tKerberos pre-authentication failed.`,
         `Error\t${timestamp}\tMicrosoft-Windows-Security-Auditing\t4740\tNone\tA user account was locked out.`,
-        `Information\t${timestamp}\tMicrosoft-Windows-Security-Auditing\t4688\tNone\tA new process has been created.`,
-        `Warning\t${timestamp}\tMicrosoft-Windows-Security-Auditing\t4698\tNone\tA scheduled task was created.`,
-        `Error\t${timestamp}\tMicrosoft-Windows-Security-Auditing\t5140\tNone\tA network share object was accessed.`,
-        `Information\t${timestamp}\tMicrosoft-Windows-Security-Auditing\t4656\tNone\tA handle to an object was requested.`,
+        `Warning\t${timestamp}\tMicrosoft-Windows-Security-Auditing\t4771\tNone\tKerberos pre-authentication failed.`,
       ],
       system: [
-        `Information\t${timestamp}\tSystem\t7036\tNone\tThe Windows Update service entered the running state.`,
-        `Warning\t${timestamp}\tSystem\t7040\tNone\tThe start type of the Windows Update service was changed.`,
         `Error\t${timestamp}\tService Control Manager\t7034\tNone\tThe Windows Search service terminated unexpectedly.`,
-        `Information\t${timestamp}\tMicrosoft-Windows-Kernel-General\t16\tNone\tThe access history in hive was cleared.`,
         `Warning\t${timestamp}\tMicrosoft-Windows-Kernel-Power\t41\tNone\tThe system has rebooted without cleanly shutting down.`,
-        `Information\t${timestamp}\tSystem\t7045\tNone\tA new service was installed in the system.`,
-        `Error\t${timestamp}\tService Control Manager\t7031\tNone\tThe Windows Update service terminated unexpectedly.`,
-        `Warning\t${timestamp}\tSystem\t6008\tNone\tThe previous system shutdown was unexpected.`,
-        `Information\t${timestamp}\tSystem\t12\tNone\tThe operating system started at system time.`,
         `Error\t${timestamp}\tBugCheck\t1001\tNone\tThe computer has rebooted from a bugcheck.`,
-        `Warning\t${timestamp}\tDisk\t11\tNone\tThe driver detected a controller error.`,
-        `Information\t${timestamp}\tEventLog\t6005\tNone\tThe Event log service was started.`,
       ],
       application: [
         `Warning\t${timestamp}\tMicrosoft-Windows-DistributedCOM\t10016\tNone\tThe application-specific permission settings do not grant Local Activation permission.`,
         `Error\t${timestamp}\tApplication Error\t1000\tNone\tFaulting application name: explorer.exe.`,
-        `Information\t${timestamp}\tVSS\t8224\tNone\tThe VSS service is shutting down due to idle timeout.`,
-        `Warning\t${timestamp}\tMicrosoft-Windows-DistributedCOM\t10016\tNone\tDCOM permission error for application ShellHWDetection.`,
-        `Error\t${timestamp}\tApplication Error\t1000\tNone\tFaulting application name: chrome.exe.`,
-        `Information\t${timestamp}\t.NET Runtime\t1026\tNone\tApplication has generated an exception.`,
-        `Warning\t${timestamp}\tMsiInstaller\t11708\tNone\tProduct installation failed.`,
         `Error\t${timestamp}\tApplication Hang\t1002\tNone\tThe program explorer.exe stopped interacting with Windows.`,
-        `Information\t${timestamp}\tWindows Error Reporting\t1001\tNone\tFault bucket reported.`,
-        `Warning\t${timestamp}\tSoftware Protection Platform Service\t8198\tNone\tLicense Activation scheduled task failed.`,
-        `Error\t${timestamp}\tSideBySide\t80\tNone\tGenerate Activation Context failed.`,
-        `Information\t${timestamp}\tDesktop Window Manager\t9027\tNone\tDWM process started.`,
       ],
     };
     
     let selectedLogs: string[] = [];
     
     if (source === "windows-event") {
-      // Combine all log types
-      selectedLogs = [...allLogs.security, ...allLogs.system, ...allLogs.application];
+      // Combine one from each for a smaller set
+      selectedLogs = [allLogs.security[0], allLogs.system[0], allLogs.application[0]];
     } else if (source === "security") {
       selectedLogs = allLogs.security;
     } else if (source === "system") {
