@@ -107,6 +107,28 @@ Return empty array [] if no security threats detected.`,
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
       console.error("AI Gateway error:", aiResponse.status, errorText);
+      
+      if (aiResponse.status === 429) {
+        return new Response(JSON.stringify({ 
+          error: "Rate limited - too many requests. Please wait a moment.",
+          retryAfter: 5,
+          isRateLimited: true 
+        }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      if (aiResponse.status === 402) {
+        return new Response(JSON.stringify({ 
+          error: "AI credits exhausted. Please add credits to continue.",
+          isPaymentRequired: true 
+        }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
       throw new Error(`AI analysis failed: ${aiResponse.status}`);
     }
 
