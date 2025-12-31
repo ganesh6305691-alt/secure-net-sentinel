@@ -1,0 +1,8 @@
+Level	Date and Time	Source	Event ID	Task Category
+Error	12/30/2024 10:15:23 AM	Security	4625	Logon	An account failed to log on. Source IP: 192.168.1.105
+Error	12/30/2024 10:15:24 AM	Security	4625	Logon	An account failed to log on. Source IP: 192.168.1.105
+Error	12/30/2024 10:15:25 AM	Security	4625	Logon	An account failed to log on. Source IP: 192.168.1.105
+Error	12/30/2024 10:15:26 AM	Security	4625	Logon	An account failed to log on. Source IP: 192.168.1.105
+Error	12/30/2024 10:15:27 AM	Security	4625	Logon	An account failed to log on. Source IP: 192.168.1.105
+Warning	12/30/2024 10:16:00 AM	Security	4648	Logon	A logon was attempted using explicit credentials from unknown source
+Critical	12/30/2024 10:17:45 AM	Security	4672	Special Logon	Special privileges assigned to new logon - unauthorized admin access detected

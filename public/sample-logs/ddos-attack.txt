@@ -1,0 +1,6 @@
+Level	Date and Time	Source	Event ID	Task Category
+Warning	12/30/2024 11:00:01 AM	System	7034	Service Control	TCP connection flood detected - 500 connections/sec from 10.0.0.50
+Warning	12/30/2024 11:00:02 AM	System	7034	Service Control	TCP connection flood detected - 750 connections/sec from 10.0.0.50
+Error	12/30/2024 11:00:03 AM	System	7034	Service Control	TCP connection flood detected - 1200 connections/sec from 10.0.0.50
+Critical	12/30/2024 11:00:04 AM	System	7034	Service Control	Service degradation - excessive network traffic overwhelming resources
+Critical	12/30/2024 11:00:05 AM	System	7031	Service Control	Web service terminated unexpectedly due to resource exhaustion

@@ -1,0 +1,9 @@
+Level	Date and Time	Source	Event ID	Task Category
+Information	12/30/2024 08:00:00 AM	Security	4624	Logon	Successful user logon: admin@company.com
+Information	12/30/2024 08:05:00 AM	Application	1000	Application	Application started successfully: outlook.exe
+Warning	12/30/2024 08:10:00 AM	Security	4625	Logon	Failed login attempt for user: root from IP 203.45.67.89
+Information	12/30/2024 08:15:00 AM	System	7036	Service Control	Windows Update service started
+Error	12/30/2024 08:20:00 AM	Security	4625	Logon	Failed login attempt for user: administrator from IP 203.45.67.89
+Error	12/30/2024 08:20:05 AM	Security	4625	Logon	Failed login attempt for user: admin from IP 203.45.67.89
+Information	12/30/2024 08:30:00 AM	Application	1000	Application	Scheduled backup completed successfully
+Critical	12/30/2024 08:35:00 AM	Security	4720	Account Management	New admin account created: backdoor_admin

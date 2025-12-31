@@ -1,0 +1,8 @@
+Level	Date and Time	Source	Event ID	Task Category
+Warning	12/30/2024 03:00:00 PM	Security	5156	Filtering Platform	Connection attempt on port 22 from 192.168.1.200
+Warning	12/30/2024 03:00:01 PM	Security	5156	Filtering Platform	Connection attempt on port 23 from 192.168.1.200
+Warning	12/30/2024 03:00:02 PM	Security	5156	Filtering Platform	Connection attempt on port 80 from 192.168.1.200
+Warning	12/30/2024 03:00:03 PM	Security	5156	Filtering Platform	Connection attempt on port 443 from 192.168.1.200
+Warning	12/30/2024 03:00:04 PM	Security	5156	Filtering Platform	Connection attempt on port 3389 from 192.168.1.200
+Error	12/30/2024 03:00:05 PM	Security	5157	Filtering Platform	Port scan detected - 50+ ports probed in 5 seconds from 192.168.1.200
+Critical	12/30/2024 03:00:10 PM	Security	4625	Logon	Brute force attempt on SSH port 22 following port scan
