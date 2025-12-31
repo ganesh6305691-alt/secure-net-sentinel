@@ -1,0 +1,7 @@
+Level	Date and Time	Source	Event ID	Task Category
+Warning	12/30/2024 02:15:00 PM	Application	1001	Web Server	Suspicious query parameter detected: id=1' OR '1'='1
+Error	12/30/2024 02:15:05 PM	Application	1002	Database	SQL syntax error in query from IP 45.33.32.156
+Warning	12/30/2024 02:15:10 PM	Application	1001	Web Server	Multiple injection attempts: UNION SELECT * FROM users
+Critical	12/30/2024 02:15:15 PM	Security	4625	Logon	Database authentication bypass attempt detected
+Error	12/30/2024 02:15:20 PM	Application	1003	Database	Unauthorized data extraction attempt from customers table
+Critical	12/30/2024 02:15:25 PM	Security	4657	Registry	Suspicious stored procedure execution: xp_cmdshell
